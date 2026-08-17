@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ServiceCallout continueOnError="false" enabled="true" name="SC-promptCompression">
+  <DisplayName>SC-promptCompression</DisplayName>
+  <Request clearPayload="true" variable="compressionRequest">
+    <IgnoreUnresolvedVariables>false</IgnoreUnresolvedVariables>
+  </Request>
+  <Response>compressionResponse</Response>
+  <HTTPTargetConnection>
+    <URL>https://prompt-compression-gateway-1020259423319.europe-west1.run.app/compress</URL>
+    <Authentication>
+      <GoogleIDToken>
+        <Audience>https://prompt-compression-gateway-1020259423319.europe-west1.run.app</Audience>
+      </GoogleIDToken>
+    </Authentication>
+  </HTTPTargetConnection>
+</ServiceCallout>

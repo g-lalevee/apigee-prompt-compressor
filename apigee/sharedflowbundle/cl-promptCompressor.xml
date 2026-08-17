@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<SharedFlowBundle revision="9" name="cl-promptCompressor">
+  <DisplayName/>
+  <Description/>
+  <CreatedAt>1786662723836</CreatedAt>
+  <LastModifiedAt>1786662723836</LastModifiedAt>
+  <Policies>
+    <Policy>SC-promptCompression</Policy>
+    <Policy>EV-parseCompressionResponse</Policy>
+    <Policy>AM-BuildCompressionRequest</Policy>
+    <Policy>AM-addOriginalPrompt</Policy>
+  </Policies>
+  <SharedFlows>
+    <SharedFlow>default</SharedFlow>
+  </SharedFlows>
+  <subType>SharedFlow</subType>
+</SharedFlowBundle>

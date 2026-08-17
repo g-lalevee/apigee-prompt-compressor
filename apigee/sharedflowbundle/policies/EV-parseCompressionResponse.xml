@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ExtractVariables continueOnError="false" enabled="true" name="EV-parseCompressionResponse">
+  <DisplayName>EV-parseCompressionResponse</DisplayName>
+  <!-- Specify the source variable from your ServiceCallout -->
+  <Source clearPayload="false">compressionResponse</Source>
+  <JSONPayload>
+    <Variable name="compression.originalTokens">
+      <JSONPath>$.original_tokens</JSONPath>
+    </Variable>
+    <Variable name="compression.compressedPrompt">
+      <JSONPath>$.compressed_prompt</JSONPath>
+    </Variable>
+    <Variable name="compression.compressedTokens">
+      <JSONPath>$.compressed_tokens</JSONPath>
+    </Variable>
+  </JSONPayload>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</ExtractVariables>

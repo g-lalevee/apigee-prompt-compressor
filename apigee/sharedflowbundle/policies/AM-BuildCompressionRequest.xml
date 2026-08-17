@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<AssignMessage continueOnError="false" enabled="true" name="AM-BuildCompressionRequest">
+  <DisplayName>AM-BuildCompressionRequest</DisplayName>
+  <AssignTo createNew="true" transport="http" type="request">compressionRequest</AssignTo>
+  <Set>
+    <Verb>POST</Verb>
+    <Headers>
+      <Header name="Content-Type">application/json</Header>
+    </Headers>
+    <Payload contentType="application/json">
+                {
+                    "prompt": "{escapeJSON(originalPrompt)}",
+                    "max_tokens": 4096,
+                    "compression_ratio": 0.5
+                }
+            </Payload>
+  </Set>
+  <IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+</AssignMessage>

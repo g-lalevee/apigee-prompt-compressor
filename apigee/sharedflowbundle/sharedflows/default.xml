@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<SharedFlow name="default">
+  <Step>
+    <Name>AM-BuildCompressionRequest</Name>
+  </Step>
+  <Step>
+    <Name>SC-promptCompression</Name>
+  </Step>
+  <Step>
+    <Name>EV-parseCompressionResponse</Name>
+  </Step>
+  <Step>
+    <Name>AM-addOriginalPrompt</Name>
+  </Step>
+</SharedFlow>
