@@ -15,11 +15,12 @@ This project is an optimized and production-ready version of the [prompt-compres
 
 The original implementation was enhanced with:
 *   Cloud Run serverless deployment compatibility.
-*   Apigee X SharedFlow integration and OIDC security.
+*   Apigee X SharedFlow integration and GCP security.
 *   Production-grade caching and model pre-loading.
 *   LLMLingua-2 Token Classification for faster inference.
 
 ---
+
 
 ## ✨ Optimizations Included
 
@@ -30,7 +31,7 @@ The original implementation was enhanced with:
 *   **Lifespan Pre-loading**: Model weights are loaded during container startup to prevent 504 timeouts.
 
 ### ⚠️ **Note: ONNX Quantization**
-We evaluated **ONNX Runtime** quantization but pivoted to the **In-Memory TTL Cache** and **LLMLingua-2's native Token Classification** for better stability and compatibility with the current BERT implementation.
+We evaluated [**ONNX Runtime**](https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html) quantization but pivoted to the **In-Memory TTL Cache** and **LLMLingua-2's native Token Classification** for better stability and compatibility with the current BERT implementation.
 
 
 
