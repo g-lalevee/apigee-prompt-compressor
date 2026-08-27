@@ -73,6 +73,35 @@ gcloud run deploy prompt-compression-gateway \
     --timeout 900
 ```
 
+### ⚠️ Cold Start & Scaling Note
+
+By default, the Cloud Run service is configured to scale down to **zero instances** (`--min-instances 0`) when idle to minimize costs.
+Because the service needs to load AI model weights on startup, the first call (cold start) will take a while and might return a `504 Gateway Timeout` error.
+
+To avoid this behavior and ensure immediate response times, you can configure Cloud Run to keep at least one instance warm.
+
+#### Option A: Configure via the CLI
+Add the `--min-instances 1` flag to your deployment command:
+```bash
+gcloud run deploy prompt-compression-gateway \
+    --image europe-west1-docker.pkg.dev/$(gcloud config get-value project)/prompt-repo/gateway:v12 \
+    --platform managed \
+    --region europe-west1 \
+    --no-allow-unauthenticated \
+    --memory 8Gi \
+    --cpu 4 \
+    --timeout 900 \
+    --min-instances 1
+```
+
+#### Option B: Configure via the Google Cloud Console
+1. Go to the **Cloud Run** console in Google Cloud.
+2. Select your service **`prompt-compression-gateway`**.
+3. Click **Edit & Deploy New Revision** at the top.
+4. Expand the **Container, variables, networking, security** section if needed.
+5. Under the **Scaling** tab, set **Minimum number of instances** to `1`.
+6. Click **Deploy**.
+
 ---
 
 ## 🔐 2. Security Configuration
