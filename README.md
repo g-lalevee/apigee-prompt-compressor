@@ -17,7 +17,7 @@ By compressing prompts at the edge, you can:
 
 ## 🏗️ Origin & Credits
 
-This project is an optimized and production-ready version of the [prompt-compression-gateway](https://github.com/Kelpejol/prompt-compression-gateway) by Kelpejol.
+This project is an custom optimized version of the [prompt-compression-gateway](https://github.com/Kelpejol/prompt-compression-gateway) by Kelpejol.
 
 The original implementation was enhanced with:
 *   Cloud Run serverless deployment compatibility.
