@@ -4,3 +4,5 @@
 .gitignore
 *.sh
 archive
+__pycache__/
+*.pyc

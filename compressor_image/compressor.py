@@ -1,22 +1,30 @@
 """
 Prompt compression using LLMLingua.
 """
+import os
+import torch
 from llmlingua import PromptCompressor
-from cachetools import TTLCache, cached
+from cachetools import TTLCache
 from hashlib import md5
 
-# Initialize compressor (lazy loaded)
+# Tune PyTorch CPU thread count to prevent core contention
+torch.set_num_threads(int(os.getenv("TORCH_NUM_THREADS", "2")))
+
+# Initialize compressor (lazy loaded or lifespan preloaded)
 _compressor = None
 
-# Initialize cache: 100 items, 1 hour TTL
-cache = TTLCache(maxsize=100, ttl=3600)
+# Initialize cache: 5000 items, 1 hour TTL (<20MB RAM)
+cache = TTLCache(maxsize=5000, ttl=3600)
+
+MODEL_NAME = os.getenv("MODEL_NAME", "microsoft/llmlingua-2-bert-base-multilingual-cased-meetingbank")
+
 
 def get_compressor() -> PromptCompressor:
     """Get or initialize the prompt compressor."""
     global _compressor
     if _compressor is None:
         _compressor = PromptCompressor(
-            model_name="microsoft/llmlingua-2-bert-base-multilingual-cased-meetingbank",
+            model_name=MODEL_NAME,
             use_llmlingua2=True,
             device_map="cpu"
         )
@@ -30,7 +38,7 @@ def get_cache_key(prompt: str, ratio: float) -> str:
 
 def compress_prompt(prompt: str, ratio: float) -> str:
     """
-    Compress a prompt using LLMLingua with in-memory caching.
+    Compress a prompt using LLMLingua with CPU inference optimization.
     
     Args:
         prompt: The prompt text to compress
@@ -39,23 +47,14 @@ def compress_prompt(prompt: str, ratio: float) -> str:
     Returns:
         str: The compressed prompt
     """
-    key = get_cache_key(prompt, ratio)
-    
-    # Check cache manually to avoid @cached decorator complexity with global compressor
-    if key in cache:
-        print("Cache hit! Returning cached compression.")
-        return cache[key]
-
     compressor = get_compressor()
     
-    result = compressor.compress_prompt(
-        prompt,
-        rate=ratio,
-        force_tokens=["\n", ".", "!", "?"],
-        chunk_end_tokens=["\n", ".", "!", "?"],
-    )
+    with torch.inference_mode():
+        result = compressor.compress_prompt(
+            prompt,
+            rate=ratio,
+            force_tokens=["\n", ".", "!", "?"],
+            chunk_end_tokens=["\n", ".", "!", "?"],
+        )
     
-    compressed_text = result["compressed_prompt"]
-    cache[key] = compressed_text
-    
-    return compressed_text
+    return result["compressed_prompt"]

@@ -1,0 +1,11 @@
+.git
+.gitignore
+apigee
+*.zip
+*.md
+__pycache__
+*.pyc
+*.pyo
+.DS_Store
+tests
+

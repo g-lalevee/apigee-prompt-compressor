@@ -27,8 +27,7 @@ def enforce_token_limit(prompt: str, max_tokens: int) -> int:
     Raises:
         PolicyViolation: If prompt exceeds token limit
     """
-    tokens = tokenizer.encode(prompt)
-    token_count = len(tokens)
+    token_count = len(tokenizer.encode_ordinary(prompt))
     
     if token_count > max_tokens:
         raise PolicyViolation(
@@ -57,8 +56,8 @@ def enforce_compression_ratio(
     Raises:
         PolicyViolation: If compression ratio not met
     """
-    original_tokens = len(tokenizer.encode(original_prompt))
-    compressed_tokens = len(tokenizer.encode(compressed_prompt))
+    original_tokens = len(tokenizer.encode_ordinary(original_prompt))
+    compressed_tokens = len(tokenizer.encode_ordinary(compressed_prompt))
     
     actual_ratio = compressed_tokens / original_tokens if original_tokens > 0 else 1.0
     

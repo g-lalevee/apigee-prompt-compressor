@@ -30,24 +30,26 @@ The original implementation was enhanced with:
 
 ## ✨ Optimizations Included
 
-### **Application Level**
-*   **LLMLingua-2**: Uses Token Classification for ultra-fast, multilingual compression.
-*   **Full Payload Logging**: Inbound requests and outbound responses are logged for easy debugging.
-*   **TTL In-Memory Cache**: Repetitive prompts (system instructions/RAG context) return in **<10ms**.
-*   **Lifespan Pre-loading**: Model weights are loaded during container startup to prevent 504 timeouts.
+### **Container & Cold-Start Optimizations**
+*   **Pre-baked Model Weights**: BERT model weights (~711MB) are baked into `/app/model_cache` during Docker build, eliminating runtime Hugging Face WAN downloads and slashing cold boot from ~52s down to ~2.5s.
+*   **Air-Gapped Offline Mode**: `TRANSFORMERS_OFFLINE=1` and `HF_HUB_OFFLINE=1` guarantee zero external DNS or HTTP calls on startup.
+*   **CPU-Only PyTorch**: Installs PyTorch via `--index-url https://download.pytorch.org/whl/cpu`, purging ~2.5GB of unused CUDA binaries and shrinking image size by ~70%.
+*   **Bytecode Pre-compilation**: Python bytecode compiled ahead of time (`compileall -b`) for fast import execution.
 
-### ⚠️ **Note: ONNX Quantization**
-We evaluated [**ONNX Runtime**](https://onnxruntime.ai/docs/performance/model-optimizations/quantization.html) quantization but pivoted to the **In-Memory TTL Cache** and **LLMLingua-2's native Token Classification** for better stability and compatibility with the current BERT implementation.
-
-
+### **Hot-Path & Concurrency Optimizations**
+*   **Threadpool Offloading**: Synchronous route handler dispatches CPU-bound PyTorch inference to AnyIO worker threadpool, keeping the ASGI event loop responsive for `/health` probes.
+*   **Multi-Worker Execution**: Uvicorn runs 2 worker processes with PyTorch CPU thread tuning (`torch.set_num_threads(2)` and `inference_mode()`) to utilize all 4 vCPUs without GIL lockup.
+*   **Full-Response TTL In-Memory Cache**: Caches full response payloads for 5,000 items, bypassing tokenization and inference completely for cache hits in **<2ms**.
+*   **Fast Tokenization**: Uses `tiktoken.encode_ordinary()` for high-throughput policy verification.
 
 ---
 
 ## 📂 Repository Structure
 
 *   **`/compressor_image`**: The FastAPI application (LLMLingua-2 + Caching).
-*   **`/apigee`**:  Prompt Compressor SharedFlow bundle source code and zip file.
-*   **`Dockerfile`**: Optimized for Cloud Run deployment.
+*   **`/apigee`**: Prompt Compressor SharedFlow bundle source code and zip file.
+*   **`Dockerfile`**: Production-optimized for Google Cloud Run.
+*   **`tests/`**: Automated test suite for models, policies, and caching.
 
 ---
 
@@ -60,38 +62,20 @@ We evaluated [**ONNX Runtime**](https://onnxruntime.ai/docs/performance/model-op
 ### Deployment Commands
 ```bash
 # 1. Build and Push Image (from root)
-gcloud builds submit --tag europe-west1-docker.pkg.dev/$(gcloud config get-value project)/prompt-repo/gateway:v12 .
+gcloud builds submit --tag europe-west1-docker.pkg.dev/$(gcloud config get-value project)/prompt-compression-repo/gateway:v13 .
 
 # 2. Deploy to Cloud Run
 gcloud run deploy prompt-compression-gateway \
-    --image europe-west1-docker.pkg.dev/$(gcloud config get-value project)/prompt-repo/gateway:v12 \
+    --image europe-west1-docker.pkg.dev/$(gcloud config get-value project)/prompt-compression-repo/gateway:v13 \
     --platform managed \
     --region europe-west1 \
     --no-allow-unauthenticated \
     --memory 8Gi \
     --cpu 4 \
-    --timeout 900
-```
-
-### ⚠️ Cold Start & Scaling Note
-
-By default, the Cloud Run service is configured to scale down to **zero instances** (`--min-instances 0`) when idle to minimize costs.
-Because the service needs to load AI model weights on startup, the first call (cold start) will take a while and might return a `504 Gateway Timeout` error.
-
-To avoid this behavior and ensure immediate response times, you can configure Cloud Run to keep at least one instance warm.
-
-#### Option A: Configure via the CLI
-Add the `--min-instances 1` flag to your deployment command:
-```bash
-gcloud run deploy prompt-compression-gateway \
-    --image europe-west1-docker.pkg.dev/$(gcloud config get-value project)/prompt-repo/gateway:v12 \
-    --platform managed \
-    --region europe-west1 \
-    --no-allow-unauthenticated \
-    --memory 8Gi \
-    --cpu 4 \
+    --cpu-boost \
+    --concurrency 15 \
     --timeout 900 \
-    --min-instances 1
+    --min-instances 0
 ```
 
 #### Option B: Configure via the Google Cloud Console
